@@ -38,33 +38,39 @@ then
     FF_MAKEFLAGS=-j`sysctl -n machdep.cpu.thread_count`
 fi
 
+NDKBUILD_COMMAND=ndk-build
+
+if [[ $UNAME_S =~ "CYGWIN" ]] ; then
+	NDKBUILD_COMMAND=ndk-build.cmd
+fi
+
 do_sub_cmd () {
     SUB_CMD=$1
-    if [ -L "./android-ndk-prof" ]; then
-        rm android-ndk-prof
-    fi
+#    if [ -L "./android-ndk-prof" ]; then
+#        rm android-ndk-prof
+#    fi
 
-    if [ "$PARAM_SUB_CMD" = 'prof' ]; then
-        echo 'profiler build: YES';
-        ln -s ../../../../../../ijkprof/android-ndk-profiler/jni android-ndk-prof
-    else
-        echo 'profiler build: NO';
-        ln -s ../../../../../../ijkprof/android-ndk-profiler-dummy/jni android-ndk-prof
-    fi
+#    if [ "$PARAM_SUB_CMD" = 'prof' ]; then
+#        echo 'profiler build: YES';
+#        ln -s ../../../../../../ijkprof/android-ndk-profiler/jni android-ndk-prof
+#    else
+#        echo 'profiler build: NO';
+#        ln -s ../../../../../../ijkprof/android-ndk-profiler-dummy/jni android-ndk-prof
+#    fi
 
     case $SUB_CMD in
         prof)
-            $ANDROID_NDK/ndk-build $FF_MAKEFLAGS
+            $ANDROID_NDK/$NDKBUILD_COMMAND $FF_MAKEFLAGS
         ;;
         clean)
-            $ANDROID_NDK/ndk-build clean
+            $ANDROID_NDK/$NDKBUILD_COMMAND clean
         ;;
         rebuild)
-            $ANDROID_NDK/ndk-build clean
-            $ANDROID_NDK/ndk-build $FF_MAKEFLAGS
+            $ANDROID_NDK/$NDKBUILD_COMMAND clean
+            $ANDROID_NDK/$NDKBUILD_COMMAND $FF_MAKEFLAGS
         ;;
         *)
-            $ANDROID_NDK/ndk-build $FF_MAKEFLAGS
+            $ANDROID_NDK/$NDKBUILD_COMMAND $FF_MAKEFLAGS
         ;;
     esac
 }
@@ -75,11 +81,16 @@ do_ndk_build () {
     case "$PARAM_TARGET" in
         armv5|armv7a)
             cd "ijkplayer/ijkplayer-$PARAM_TARGET/src/main/jni"
+			if [ "$PARAM_TARGET" = "armv5" ] ;then
+				cp "../../../../ijkplayer-armv7a/src/main/jni/Android.mk" .
+			fi
+			
             do_sub_cmd $PARAM_SUB_CMD
             cd -
         ;;
         arm64|x86|x86_64)
             cd "ijkplayer/ijkplayer-$PARAM_TARGET/src/main/jni"
+			cp "../../../../ijkplayer-armv7a/src/main/jni/Android.mk" .
             if [ "$PARAM_SUB_CMD" = 'prof' ]; then PARAM_SUB_CMD=''; fi
             do_sub_cmd $PARAM_SUB_CMD
             cd -
