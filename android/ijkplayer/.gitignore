@@ -6,3 +6,11 @@
 /build
 /captures
 android-ndk-prof
+/xunxun-player
+
+/ijkplayer-arm64/src/main/jni/Android.mk
+/ijkplayer-armv5/src/main/jni/Android.mk
+/ijkplayer-x86/src/main/jni/Android.mk
+/ijkplayer-x86_64/src/main/jni/Android.mk
+
+

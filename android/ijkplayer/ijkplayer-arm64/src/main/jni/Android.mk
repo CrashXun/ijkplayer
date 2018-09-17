@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 LOCAL_PATH := $(call my-dir)
-LOCAL_SHORT_COMMANDS := true
+
 #MY_APP_JNI_ROOT := $(realpath $(LOCAL_PATH))
 #MY_APP_PRJ_ROOT := $(realpath $(MY_APP_JNI_ROOT)/..)
 #MY_APP_ANDROID_ROOT := $(realpath $(MY_APP_PRJ_ROOT)/../../../..)
@@ -26,9 +26,9 @@ LOCAL_SHORT_COMMANDS := true
 MY_APP_JNI_ROOT := $(LOCAL_PATH)
 MY_APP_PRJ_ROOT := $(MY_APP_JNI_ROOT)/..
 MY_APP_ANDROID_ROOT := $(MY_APP_PRJ_ROOT)/../../../..
-$(warning $(MY_APP_JNI_ROOT))
-$(warning $(MY_APP_PRJ_ROOT))
-$(warning $(MY_APP_ANDROID_ROOT))
+#$(warning $(MY_APP_JNI_ROOT))
+#$(warning $(MY_APP_PRJ_ROOT))
+#$(warning $(MY_APP_ANDROID_ROOT))
 
 #ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 #MY_APP_FFMPEG_OUTPUT_PATH := $(realpath $(MY_APP_ANDROID_ROOT)/contrib/build/ffmpeg-armv7a/output)
