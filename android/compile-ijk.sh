@@ -76,13 +76,20 @@ do_sub_cmd () {
 }
 
 do_ndk_build () {
+	shellpath=$(cd `dirname $0`; pwd)
+	ijkmediaPath=${shellpath}/../ijkmedia/
+	sh ${ijkmediaPath}/ijkplayer/version.sh ${ijkmediaPath}/ijkplayer/ ijkversion.h
+	
     PARAM_TARGET=$1
     PARAM_SUB_CMD=$2
     case "$PARAM_TARGET" in
         armv5|armv7a)
             cd "ijkplayer/ijkplayer-$PARAM_TARGET/src/main/jni"
 			if [ "$PARAM_TARGET" = "armv5" ] ;then
+				rm ./Android.mk
+				rm -r ./ffmpeg
 				cp "../../../../ijkplayer-armv7a/src/main/jni/Android.mk" .
+				cp -r "../../../../ijkplayer-armv7a/src/main/jni/ffmpeg" .
 			fi
 			
             do_sub_cmd $PARAM_SUB_CMD
@@ -90,12 +97,17 @@ do_ndk_build () {
         ;;
         arm64|x86|x86_64)
             cd "ijkplayer/ijkplayer-$PARAM_TARGET/src/main/jni"
+			rm ./Android.mk
+			rm -r ./ffmpeg
 			cp "../../../../ijkplayer-armv7a/src/main/jni/Android.mk" .
+			cp -r "../../../../ijkplayer-armv7a/src/main/jni/ffmpeg" .
             if [ "$PARAM_SUB_CMD" = 'prof' ]; then PARAM_SUB_CMD=''; fi
             do_sub_cmd $PARAM_SUB_CMD
             cd -
         ;;
     esac
+	
+	
 }
 
 
