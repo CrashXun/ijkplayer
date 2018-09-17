@@ -878,6 +878,7 @@ static void video_image_display2(FFPlayer *ffp)
     vp = frame_queue_peek_last(&is->pictq);
 
     if (vp->bmp) {
+		av_log(NULL,AV_LOG_DEBUG,"vp->bmp\n");
         if (is->subtitle_st) {
             if (frame_queue_nb_remaining(&is->subpq) > 0) {
                 sp = frame_queue_peek(&is->subpq);
@@ -4251,6 +4252,9 @@ int ffp_prepare_async_l(FFPlayer *ffp, const char *file_name)
     assert(ffp);
     assert(!ffp->is);
     assert(file_name);
+
+	//will assert this var in stream_component_open to enable subtitle
+	ffp->subtitle = 1;
 
     if (av_stristart(file_name, "rtmp", NULL) ||
         av_stristart(file_name, "rtsp", NULL)) {

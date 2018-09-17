@@ -742,6 +742,7 @@ inline static void ffp_reset_internal(FFPlayer *ffp)
     av_freep(&ffp->input_filename);
     ffp->audio_disable          = 0;
     ffp->video_disable          = 0;
+	ffp->subtitle_disable         = 0;
     memset(ffp->wanted_stream_spec, 0, sizeof(ffp->wanted_stream_spec));
     ffp->seek_by_bytes          = -1;
     ffp->display_disable        = 0;
