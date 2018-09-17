@@ -84,3 +84,10 @@ local.properties
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+ijkplayer/ijkplayer-arm64/src/main/jni/Android.mk
+ijkplayer/ijkplayer-armv5/src/main/jni/Android.mk
+ijkplayer/ijkplayer-x86/src/main/jni/Android.mk
+ijkplayer/ijkplayer-x86_64/src/main/jni/Android.mk
+

@@ -30,6 +30,8 @@ MY_APP_ANDROID_ROOT := $(MY_APP_PRJ_ROOT)/../../../..
 #$(warning $(MY_APP_PRJ_ROOT))
 #$(warning $(MY_APP_ANDROID_ROOT))
 
+$(warning $(haha))
+
 #ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 #MY_APP_FFMPEG_OUTPUT_PATH := $(realpath $(MY_APP_ANDROID_ROOT)/contrib/build/ffmpeg-armv7a/output)
 #MY_APP_FFMPEG_INCLUDE_PATH := $(realpath $(MY_APP_FFMPEG_OUTPUT_PATH)/include)
@@ -74,6 +76,11 @@ endif
 
 include $(call all-subdir-makefiles)
 
+#$(warning $(findstring Darwin,$(UNAME_S)))
+ifeq ($(UNAME_S),Darwin)
+
+else
 include $(MY_APP_ANDROID_ROOT)/../ijkmedia/*.mk
 include $(MY_APP_ANDROID_ROOT)/../ijkprof/android-ndk-profiler-dummy/jni/*.mk
+endif
 
