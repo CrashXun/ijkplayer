@@ -878,7 +878,7 @@ static void video_image_display2(FFPlayer *ffp)
     vp = frame_queue_peek_last(&is->pictq);
 
     if (vp->bmp) {
-		av_log(NULL,AV_LOG_DEBUG,"vp->bmp\n");
+		//av_log(NULL,AV_LOG_DEBUG,"vp->bmp\n");
         if (is->subtitle_st) {
             if (frame_queue_nb_remaining(&is->subpq) > 0) {
                 sp = frame_queue_peek(&is->subpq);
@@ -2376,6 +2376,7 @@ static int subtitle_thread(void *arg)
             sp->height = is->subdec.avctx->height;
             sp->uploaded = 0;
 
+			av_log(NULL, AV_LOG_DEBUG, "aaa subtitle_thread:queue push pts:%d.\n",sp->pts);
             /* now we can update the picture count */
             frame_queue_push(&is->subpq);
 #ifdef FFP_MERGE
