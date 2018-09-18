@@ -38,7 +38,7 @@ then
     FF_MAKEFLAGS=-j`sysctl -n machdep.cpu.thread_count`
 fi
 
-NDKBUILD_COMMAND=ndk-build
+NDKBUILD_COMMAND=ndk-build" UNAME_S=$UNAME_S"
 
 if [[ $UNAME_S =~ "CYGWIN" ]] ; then
 	NDKBUILD_COMMAND=ndk-build.cmd
@@ -46,17 +46,19 @@ fi
 
 do_sub_cmd () {
     SUB_CMD=$1
-#    if [ -L "./android-ndk-prof" ]; then
-#        rm android-ndk-prof
-#    fi
+    if [[ ! $UNAME_S =~ "CYGWIN" ]] ; then
+       if [ -L "./android-ndk-prof" ]; then
+           rm android-ndk-prof
+       fi
 
-#    if [ "$PARAM_SUB_CMD" = 'prof' ]; then
-#        echo 'profiler build: YES';
-#        ln -s ../../../../../../ijkprof/android-ndk-profiler/jni android-ndk-prof
-#    else
-#        echo 'profiler build: NO';
-#        ln -s ../../../../../../ijkprof/android-ndk-profiler-dummy/jni android-ndk-prof
-#    fi
+       if [ "$PARAM_SUB_CMD" = 'prof' ]; then
+           echo 'profiler build: YES';
+           ln -s ../../../../../../ijkprof/android-ndk-profiler/jni android-ndk-prof
+       else
+           echo 'profiler build: NO';
+           ln -s ../../../../../../ijkprof/android-ndk-profiler-dummy/jni android-ndk-prof
+       fi
+    fi
 
     case $SUB_CMD in
         prof)
