@@ -565,7 +565,7 @@ fail0:
 
 static int decoder_decode_frame(FFPlayer *ffp, Decoder *d, AVFrame *frame, AVSubtitle *sub) {
     int ret = AVERROR(EAGAIN);
-
+	
     for (;;) {
         AVPacket pkt;
 
@@ -612,29 +612,56 @@ static int decoder_decode_frame(FFPlayer *ffp, Decoder *d, AVFrame *frame, AVSub
                     return 1;
             } while (ret != AVERROR(EAGAIN));
         }
+		
 
         do {
-            if (d->queue->nb_packets == 0)
+			
+            if (d->queue->nb_packets == 0) {
+			
                 SDL_CondSignal(d->empty_queue_cond);
+			
+            	}
             if (d->packet_pending) {
+				
                 av_packet_move_ref(&pkt, &d->pkt);
                 d->packet_pending = 0;
+				
             } else {
+            	
                 if (packet_queue_get_or_buffering(ffp, d->queue, &pkt, &d->pkt_serial, &d->finished) < 0)
                     return -1;
+				
             }
         } while (d->queue->serial != d->pkt_serial);
 
+		
+
         if (pkt.data == flush_pkt.data) {
+			
+			
             avcodec_flush_buffers(d->avctx);
             d->finished = 0;
             d->next_pts = d->start_pts;
             d->next_pts_tb = d->start_pts_tb;
         } else {
+			
+			
             if (d->avctx->codec_type == AVMEDIA_TYPE_SUBTITLE) {
                 int got_frame = 0;
+				//av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame 10 pkt=%p pkt.data=%p",&pkt,pkt.data);
+
+				if(pkt.buf) {
+					av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame pkt->buf->data:%s\n",pkt.buf->data);
+				}
+				//av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame 10.1");
                 ret = avcodec_decode_subtitle2(d->avctx, sub, &got_frame, &pkt);
-                if (ret < 0) {
+
+				//av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame format:%u\n",sub->format);
+				//av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame start_display_time:%u\n",sub->start_display_time);
+				//av_log(NULL, AV_LOG_DEBUG, "decoder_decode_frame end_display_time:%u\n",sub->end_display_time);
+				
+
+				if (ret < 0) {
                     ret = AVERROR(EAGAIN);
                 } else {
                     if (got_frame && !pkt.data) {
@@ -650,7 +677,11 @@ static int decoder_decode_frame(FFPlayer *ffp, Decoder *d, AVFrame *frame, AVSub
                     av_packet_move_ref(&d->pkt, &pkt);
                 }
             }
+			
+			
             av_packet_unref(&pkt);
+			
+			
         }
     }
 }
@@ -757,12 +788,15 @@ static Frame *frame_queue_peek_readable(FrameQueue *f)
 
 static void frame_queue_push(FrameQueue *f)
 {
+	//av_log(NULL,AV_LOG_DEBUG,"frame_queue_push s f=%p",f);
     if (++f->windex == f->max_size)
         f->windex = 0;
     SDL_LockMutex(f->mutex);
     f->size++;
     SDL_CondSignal(f->cond);
     SDL_UnlockMutex(f->mutex);
+	
+	//av_log(NULL,AV_LOG_DEBUG,"frame_queue_push e f=%p",f);
 }
 
 static void frame_queue_next(FrameQueue *f)
@@ -935,6 +969,7 @@ static void video_image_display2(FFPlayer *ffp)
 
 static void stream_component_close(FFPlayer *ffp, int stream_index)
 {
+	av_log(NULL, AV_LOG_WARNING, "stream_component_close s index:%d.\n",stream_index);
     VideoState *is = ffp->is;
     AVFormatContext *ic = is->ic;
     AVCodecParameters *codecpar;
@@ -992,6 +1027,8 @@ static void stream_component_close(FFPlayer *ffp, int stream_index)
     default:
         break;
     }
+	
+	av_log(NULL, AV_LOG_WARNING, "stream_component_close e index:%d.\n",stream_index);
 }
 
 static void stream_close(FFPlayer *ffp)
@@ -2356,11 +2393,15 @@ static int subtitle_thread(void *arg)
     double pts;
 
     for (;;) {
+		
+		
         if (!(sp = frame_queue_peek_writable(&is->subpq)))
             return 0;
+		
 
         if ((got_subtitle = decoder_decode_frame(ffp, &is->subdec, NULL, &sp->sub)) < 0)
             break;
+		//av_log(NULL,AV_LOG_DEBUG,"subtitle_thread 3");
 
         pts = 0;
 #ifdef FFP_MERGE
@@ -2376,7 +2417,7 @@ static int subtitle_thread(void *arg)
             sp->height = is->subdec.avctx->height;
             sp->uploaded = 0;
 
-			av_log(NULL, AV_LOG_DEBUG, "aaa subtitle_thread:queue push pts:%d.\n",sp->pts);
+			//av_log(NULL, AV_LOG_DEBUG, "aaa subtitle_thread:queue push pts:%d.\n",sp->pts);
             /* now we can update the picture count */
             frame_queue_push(&is->subpq);
 #ifdef FFP_MERGE
@@ -2808,6 +2849,8 @@ static int audio_open(FFPlayer *opaque, int64_t wanted_channel_layout, int wante
 /* open a given stream. Return 0 if OK */
 static int stream_component_open(FFPlayer *ffp, int stream_index)
 {
+	av_log(NULL, AV_LOG_WARNING, "stream_component_open s index:%d.\n",stream_index);
+
     VideoState *is = ffp->is;
     AVFormatContext *ic = is->ic;
     AVCodecContext *avctx;
@@ -3021,8 +3064,12 @@ static int stream_component_open(FFPlayer *ffp, int stream_index)
 
 fail:
     avcodec_free_context(&avctx);
+	
+	av_log(NULL, AV_LOG_WARNING, "stream_component_open e fail!!! index:%d.\n",stream_index);
 out:
     av_dict_free(&opts);
+
+	av_log(NULL, AV_LOG_WARNING, "stream_component_open e out!!! index:%d.\n",stream_index);
 
     return ret;
 }
@@ -3488,6 +3535,7 @@ static int read_thread(void *arg)
             } else {
                 ffp_statistic_l(ffp);
                 if (completed) {
+					 av_log(NULL, AV_LOG_ERROR, "complete sss");
                     av_log(ffp, AV_LOG_INFO, "ffp_toggle_buffering: eof\n");
                     SDL_LockMutex(wait_mutex);
                     // infinite wait may block shutdown
@@ -3496,7 +3544,9 @@ static int read_thread(void *arg)
                     SDL_UnlockMutex(wait_mutex);
                     if (!is->abort_request)
                         continue;
+					 av_log(NULL, AV_LOG_ERROR, "complete eee");
                 } else {
+                	 av_log(NULL, AV_LOG_ERROR, "!complete sss");
                     completed = 1;
                     ffp->auto_resume = 0;
 
@@ -3510,11 +3560,15 @@ static int read_thread(void *arg)
                         av_log(ffp, AV_LOG_INFO, "ffp_toggle_buffering: completed: OK\n");
                         ffp_notify_msg1(ffp, FFP_MSG_COMPLETED);
                     }
+					 av_log(NULL, AV_LOG_ERROR, "!complete eee");
                 }
             }
         }
         pkt->flags = 0;
         ret = av_read_frame(ic, pkt);
+		//if(pkt->stream_index == is->subtitle_stream) {
+		//		av_log(NULL, AV_LOG_DEBUG,"av_read_frame pkt:%s",pkt->buf->data);
+		//}
         if (ret < 0) {
             int pb_eof = 0;
             int pb_error = 0;
@@ -3556,8 +3610,10 @@ static int read_thread(void *arg)
                 ffp->error = 0;
             }
             if (is->eof) {
+				//av_log(NULL, AV_LOG_ERROR, "is->eof s!!!");
                 ffp_toggle_buffering(ffp, 0);
                 SDL_Delay(100);
+				//av_log(NULL, AV_LOG_ERROR, "is->eof e!!!");
             }
             SDL_LockMutex(wait_mutex);
             SDL_CondWaitTimeout(is->continue_read_thread, wait_mutex, 10);
@@ -3583,6 +3639,7 @@ static int read_thread(void *arg)
         /* check if packet is in play range specified by user, then queue, otherwise discard */
         stream_start_time = ic->streams[pkt->stream_index]->start_time;
         pkt_ts = pkt->pts == AV_NOPTS_VALUE ? pkt->dts : pkt->pts;
+		
         pkt_in_play_range = ffp->duration == AV_NOPTS_VALUE ||
                 (pkt_ts - (stream_start_time != AV_NOPTS_VALUE ? stream_start_time : 0)) *
                 av_q2d(ic->streams[pkt->stream_index]->time_base) -
@@ -3596,6 +3653,7 @@ static int read_thread(void *arg)
         } else if (pkt->stream_index == is->subtitle_stream && pkt_in_play_range) {
             packet_queue_put(&is->subtitleq, pkt);
         } else {
+			
             av_packet_unref(pkt);
         }
 
@@ -3625,7 +3683,9 @@ static int read_thread(void *arg)
     }
 
     ret = 0;
+	av_log(NULL, AV_LOG_ERROR, "read_thread normal end!!!");
  fail:
+ 	av_log(NULL, AV_LOG_ERROR, "read_thread fail:!!!");
     if (ic && !is->ic)
         avformat_close_input(&ic);
 
@@ -3634,6 +3694,8 @@ static int read_thread(void *arg)
         ffp_notify_msg2(ffp, FFP_MSG_ERROR, last_error);
     }
     SDL_DestroyMutex(wait_mutex);
+
+	av_log(NULL, AV_LOG_ERROR, "read_thread end!!!");
     return 0;
 }
 
@@ -4600,9 +4662,12 @@ void ffp_toggle_buffering_l(FFPlayer *ffp, int buffering_on)
 
 void ffp_toggle_buffering(FFPlayer *ffp, int start_buffering)
 {
+	//av_log(NULL, AV_LOG_ERROR, "ffp_toggle_buffering ssss");
+
     SDL_LockMutex(ffp->is->play_mutex);
     ffp_toggle_buffering_l(ffp, start_buffering);
     SDL_UnlockMutex(ffp->is->play_mutex);
+	//av_log(NULL, AV_LOG_ERROR, "ffp_toggle_buffering eeee");
 }
 
 void ffp_track_statistic_l(FFPlayer *ffp, AVStream *st, PacketQueue *q, FFTrackCacheStatistic *cache)
@@ -4845,24 +4910,32 @@ int ffp_set_stream_selected(FFPlayer *ffp, int stream, int selected)
     codecpar = ic->streams[stream]->codecpar;
 
     if (selected) {
+		bool needOpen = false;
         switch (codecpar->codec_type) {
             case AVMEDIA_TYPE_VIDEO:
-                if (stream != is->video_stream && is->video_stream >= 0)
-                    stream_component_close(ffp, is->video_stream);
+                if (stream != is->video_stream && is->video_stream >= 0) {
+                    stream_component_close(ffp, is->video_stream);
+				   needOpen = true;
+                }
                 break;
             case AVMEDIA_TYPE_AUDIO:
-                if (stream != is->audio_stream && is->audio_stream >= 0)
+                if (stream != is->audio_stream && is->audio_stream >= 0){
                     stream_component_close(ffp, is->audio_stream);
+					needOpen = true;
+                	}
                 break;
             case AVMEDIA_TYPE_SUBTITLE:
-                if (stream != is->subtitle_stream && is->subtitle_stream >= 0)
+                if (stream != is->subtitle_stream && is->subtitle_stream >= 0){
                     stream_component_close(ffp, is->subtitle_stream);
+					needOpen = true;
+                	}
                 break;
             default:
                 av_log(ffp, AV_LOG_ERROR, "select invalid stream %d of video type %d\n", stream, codecpar->codec_type);
                 return -1;
         }
-        return stream_component_open(ffp, stream);
+		if(needOpen)
+        	return stream_component_open(ffp, stream);
     } else {
         switch (codecpar->codec_type) {
             case AVMEDIA_TYPE_VIDEO:
