@@ -38,12 +38,12 @@ then
     FF_MAKEFLAGS=-j`sysctl -n machdep.cpu.thread_count`
 fi
 
-NDKBUILD_COMMAND=ndk-build" UNAME_S=$UNAME_S"
+NDKBUILD_COMMAND=ndk-build
 
 if [[ $UNAME_S =~ "CYGWIN" ]] ; then
 	NDKBUILD_COMMAND=ndk-build.cmd
 fi
-
+NDKBUILD_COMMAND=${NDKBUILD_COMMAND}" UNAME_S=$UNAME_S NDK_DEBUG=1"
 do_sub_cmd () {
     SUB_CMD=$1
     if [[ ! $UNAME_S =~ "CYGWIN" ]] ; then
